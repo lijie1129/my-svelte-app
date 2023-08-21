@@ -10,8 +10,10 @@ const syncContentFromLocalToRemoteHandler = async () => {
 	const { blocks } = await editorInstance.save();
 	const yBlocks = ydoc.getArray(fieldName);
 	const diff = diffJson(yBlocks.toJSON(), blocks);
-	console.log('--- [binding] local ---', { blocks, diff, yBlocks: yBlocks.toJSON() });
+
 	if (!diff || !diff.length) return;
+
+	console.log('--- [binding] local ---', { blocks, diff, yBlocks: yBlocks.toJSON() });
 
 	ydoc.transact(() => {
 		diff.forEach((item) => {
@@ -37,7 +39,9 @@ const syncContentFromRemoteToLocalHandler = async (events) => {
 	const { blocks } = await editorInstance.save();
 	const yBlocks = ydoc.getArray(fieldName);
 	const diff = diffJson(blocks, yBlocks.toJSON());
-	console.log('--- [binding] remove ---', { blocks, diff, yBlocks: yBlocks.toJSON() });
+
+	console.log('--- [binding] remove ---', { events, blocks, diff, yBlocks: yBlocks.toJSON() });
+
 	diff.forEach(async ({ type, path, value }) => {
 		if (type === ACTION_CREATE) {
 			if (path.length === 1) {
@@ -48,14 +52,14 @@ const syncContentFromRemoteToLocalHandler = async (events) => {
 			return;
 		}
 
-		if (type === ACTION_REMOVE) {
+    if (type === ACTION_REMOVE) {
       if (path.length === 1) {
 			  editorInstance.blocks.delete(path[0]);
       } else {
         console.log('--- TODO: deal remove property ---');
       }
 			return;
-		}
+    }
 
 		if (type === ACTION_CHANGE) {
 			await updateBlock(path, value);
